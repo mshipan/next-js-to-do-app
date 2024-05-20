@@ -1,6 +1,24 @@
 "use client";
+import { useGetAllTasksQuery } from "@/redux/features/allApis/tasksApi";
+import { useState } from "react";
+import UpdateTaskModal from "./UpdateTaskModal";
+import TaskTr from "./TaskTr";
 
 const TaskTable = () => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null);
+  const { data: allTasks } = useGetAllTasksQuery();
+
+  const openEditModal = (task) => {
+    setCurrentTask(task);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentTask(null);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="table border border-sky-500">
@@ -18,28 +36,25 @@ const TaskTable = () => {
           </tr>
         </thead>
         <tbody className="text-black">
-          {/* row 1 */}
-          <tr className="border-sky-500">
-            <th>1</th>
-            <td>Cy Ganderton</td>
-            <td>Quality Control Specialist</td>
-            <td>07/05/2024</td>
-            <td>Mr. John</td>
-            <td>incomplete</td>
-            <td>
-              <button className="inline-flex items-center justify-center px-8 py-4 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg h-[60px]">
-                Complete
-              </button>
-            </td>
-            <td>
-              <div className="flex items-center justify-center gap-4">
-                <button className="btn btn-accent">Edit</button>
-                <button className="btn btn-error">Delete</button>
-              </div>
-            </td>
-          </tr>
+          {allTasks?.map((task, i) => (
+            <TaskTr
+              key={task?._id}
+              task={task}
+              i={i}
+              isEditModalOpen={isEditModalOpen}
+              openEditModal={openEditModal}
+              onClose={closeEditModal}
+            />
+          ))}
         </tbody>
       </table>
+      {currentTask && (
+        <UpdateTaskModal
+          isEditModalOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          task={currentTask}
+        />
+      )}
     </div>
   );
 };

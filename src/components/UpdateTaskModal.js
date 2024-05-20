@@ -1,43 +1,37 @@
 "use client";
-import { useCreateATaskMutation } from "@/redux/features/allApis/tasksApi";
+import { useUpdateATaskMutation } from "@/redux/features/allApis/tasksApi";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 
-const CreateTaskModal = ({ isModalOpen, onClose }) => {
+const UpdateTaskModal = ({ isEditModalOpen, onClose, task }) => {
+  const { _id } = task;
   const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm();
 
-  const [createTask] = useCreateATaskMutation();
+  const [updateATask] = useUpdateATaskMutation();
 
   const onSubmit = async (data) => {
     setLoading(true);
-    const result = await createTask(data);
     try {
-      if (result.data) {
+      const result = await updateATask({
+        id: _id,
+        data: data,
+      });
+
+      if (result.data.modifiedCount > 0) {
         Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Your Task has been saved",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        reset();
-        setLoading(false);
-        onClose();
-      } else {
-        Swal.fire({
-          title: "Failed to save Task.",
+          title: "Task Updated Successfully!",
           text: "Press OK to continue",
-          icon: "error",
+          icon: "success",
           confirmButtonText: "OK",
         });
         setLoading(false);
+        onClose();
       }
     } catch (error) {
       Swal.fire({
@@ -49,8 +43,9 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
       setLoading(false);
     }
   };
+
   return (
-    <dialog open={isModalOpen} id="my_modal_1" className="modal">
+    <dialog open={isEditModalOpen} id="my_modal_1" className="modal">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="modal-box bg-gray-200 border border-gray-500"
@@ -67,10 +62,12 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
                   </small>
                 )}
               </label>
+
               <input
                 type="text"
                 name="taskTitle"
                 {...register("taskTitle", { required: true })}
+                defaultValue={task?.taskTitle}
                 placeholder="Task Title"
                 className="w-full border border-gray-500 rounded-lg py-3 px-5 outline-none bg-white"
               />
@@ -88,6 +85,7 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
               <textarea
                 name="taskDescription"
                 {...register("taskDescription", { required: true })}
+                defaultValue={task?.taskDescription}
                 placeholder="Task Description"
                 rows="4"
                 className="w-full border border-gray-500 rounded-lg py-3 px-5 outline-none bg-white"
@@ -107,6 +105,7 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
                 type="date"
                 name="date"
                 {...register("date", { required: true })}
+                defaultValue={task?.date}
                 className="w-full border border-gray-500 rounded-lg py-3 px-5 outline-none bg-white"
               />
             </div>
@@ -124,6 +123,7 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
               <select
                 name="assignTo"
                 {...register("assignTo", { required: true })}
+                defaultValue={task?.assignTo}
                 className="w-full border border-gray-500 rounded-lg py-3 px-5 outline-none bg-white"
               >
                 <option value="">Select One</option>
@@ -138,7 +138,7 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
         </div>
         <div className="modal-action">
           <button type="submit" className="btn btn-primary text-white">
-            {loading ? "Loading..." : "Create Task"}
+            {loading ? "Loading..." : "Update Task"}
           </button>
           <div>
             <button className="btn text-white" onClick={onClose}>
@@ -151,4 +151,4 @@ const CreateTaskModal = ({ isModalOpen, onClose }) => {
   );
 };
 
-export default CreateTaskModal;
+export default UpdateTaskModal;
